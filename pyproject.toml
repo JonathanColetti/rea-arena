@@ -1,0 +1,69 @@
+[project]
+name = "rea-arena"
+version = "0.1.0"
+description = "An open RL gym for reverse engineering agents: procedural targets, adaptive difficulty, executable oracles"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = []
+
+[project.scripts]
+rea-arena = "rea_arena.cli:main"
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rea_arena"]
+
+[dependency-groups]
+dev = [
+    "pytest==8.3.4",
+    "ruff==0.8.6",
+    "mypy==1.14.1",
+]
+# The paper experiments under experiments/: uv sync --group paper
+paper = [
+    "matplotlib>=3.10",
+    "numpy>=2.2",
+    "scipy>=1.15",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+src = ["src", "."]
+extend-exclude = ["build"]  # generated task/control artifacts, not source
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "C90", "PLR0912", "PLR0913", "PLR0915", "ARG", "PT",
+          "PIE", "SLF"]
+ignore = ["E741"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 6  # beyond that, group related parameters into a config object
+
+[tool.ruff.lint.per-file-ignores]
+# verify.py is a vendored, stdlib-only script; its try/except/pass guards are intentional.
+"src/rea_arena/runtime/verify.py" = ["E722", "SIM105"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src/rea_arena", "experiments"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+# The paper group's stubs use Python 3.12 syntax; the package itself still targets 3.10.
+module = ["numpy.*", "scipy.*", "matplotlib.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
